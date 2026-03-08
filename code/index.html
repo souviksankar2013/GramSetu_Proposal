@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GramSetu</title>
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+margin:0;
+background:#f5f7fa;
+text-align:center;
+}
+
+/* Navbar */
+
+.navbar{
+background:#2e7d32;
+color:white;
+padding:15px;
+font-size:22px;
+font-weight:bold;
+}
+
+/* Main section */
+
+.hero{
+margin-top:120px;
+}
+
+.hero h1{
+font-size:48px;
+color:#2e7d32;
+}
+
+.hero p{
+font-size:18px;
+color:#555;
+margin-top:10px;
+}
+
+/* Buttons */
+
+.btn{
+padding:12px 25px;
+margin:15px;
+font-size:16px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.register{
+background:#43a047;
+color:white;
+}
+
+.login{
+background:#1976d2;
+color:white;
+}
+
+.btn:hover{
+opacity:0.9;
+}
+
+/* Footer */
+
+.footer{
+position:fixed;
+bottom:0;
+width:100%;
+background:#eee;
+padding:10px;
+font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+🌾 GramSetu
+</div>
+
+<div class="hero">
+
+<h1>Welcome to GramSetu</h1>
+
+<p>Connecting Farmers and Consumers through Smart Group Ordering</p>
+
+<button class="btn register" onclick="register()">Register</button>
+
+<button class="btn login" onclick="login()">Login</button>
+
+</div>
+
+<div class="footer">
+© 2026 GramSetu
+</div>
+
+<script>
+
+function register(){
+
+window.location.href =
+"https://YOUR-COGNITO-DOMAIN.auth.ap-south-1.amazoncognito.com/signup?client_id=YOUR_CLIENT_ID&response_type=token&scope=email+openid&redirect_uri=http://localhost/index.html";
+
+}
+
+function login(){
+
+window.location.href =
+"https://YOUR-COGNITO-DOMAIN.auth.ap-south-1.amazoncognito.com/login?client_id=YOUR_CLIENT_ID&response_type=token&scope=email+openid&redirect_uri=http://localhost/index.html";
+
+}
+
+</script>
+
+</body>
+</html>

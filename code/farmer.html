@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GramSetu - Farmer Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+margin:0;
+}
+
+.header{
+background:#2e7d32;
+color:white;
+padding:15px;
+font-size:22px;
+font-weight:bold;
+text-align:center;
+}
+
+.container{
+width:900px;
+margin:30px auto;
+}
+
+.card{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:8px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+color:#2e7d32;
+}
+
+label{
+display:block;
+margin-top:10px;
+font-weight:bold;
+}
+
+input,select{
+width:100%;
+padding:8px;
+margin-top:5px;
+border:1px solid #ccc;
+border-radius:4px;
+}
+
+button{
+margin-top:15px;
+padding:10px 20px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+table th,table td{
+border:1px solid #ddd;
+padding:10px;
+text-align:center;
+}
+
+table th{
+background:#2e7d32;
+color:white;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+🌾 GramSetu Farmer Dashboard
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Add Product</h2>
+
+<label>Product Name</label>
+<input type="text" id="productName">
+
+<label>Category</label>
+<select id="category">
+<option value="vegetable">Vegetable</option>
+<option value="fruit">Fruit</option>
+<option value="grain">Grain</option>
+<option value="dairy">Dairy</option>
+</select>
+
+<label>Quantity (kg)</label>
+<input type="number" id="quantity">
+
+<label>Price per kg (₹)</label>
+<input type="number" id="price">
+
+<button onclick="addProduct()">Add Product</button>
+
+<p id="msg"></p>
+
+</div>
+
+<div class="card">
+
+<h2>My Products</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Product</th>
+<th>Category</th>
+<th>Quantity</th>
+<th>Price</th>
+</tr>
+</thead>
+
+<tbody id="productTable">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const apiUrl="https://ubtkqscvjb.execute-api.ap-south-1.amazonaws.com/products";
+
+/* fixed farmer id */
+const userId="911000000000";
+
+
+async function addProduct(){
+
+let productName=document.getElementById("productName").value;
+let category=document.getElementById("category").value;
+let quantity=document.getElementById("quantity").value;
+let price=document.getElementById("price").value;
+
+let productData={
+product_id:Date.now().toString(),
+farmer_id:userId,
+name:productName,
+price:price,
+quantity:quantity
+};
+
+await fetch(apiUrl,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(productData)
+});
+
+document.getElementById("msg").innerText="Product added successfully";
+
+loadProducts();
+
+}
+
+
+
+async function loadProducts(){
+
+let response=await fetch(apiUrl+"?farmer_id="+userId);
+
+let data=await response.json();
+
+let table=document.getElementById("productTable");
+
+table.innerHTML="";
+
+data.forEach(p=>{
+
+let row=`
+<tr>
+<td>${p.name}</td>
+<td>-</td>
+<td>${p.quantity}</td>
+<td>₹${p.price}</td>
+</tr>
+`;
+
+table.innerHTML+=row;
+
+});
+
+}
+
+/* load farmer products on page start */
+loadProducts();
+
+</script>
+
+</body>
+</html>

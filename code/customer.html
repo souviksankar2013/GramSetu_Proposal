@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GramSetu - Customer</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+margin:0;
+}
+
+.header{
+background:#2e7d32;
+color:white;
+padding:15px;
+font-size:22px;
+font-weight:bold;
+text-align:center;
+}
+
+.container{
+width:1000px;
+margin:30px auto;
+}
+
+.card{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:8px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+color:#2e7d32;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+table th,table td{
+border:1px solid #ddd;
+padding:10px;
+text-align:center;
+}
+
+table th{
+background:#2e7d32;
+color:white;
+}
+
+button{
+padding:6px 12px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:4px;
+cursor:pointer;
+}
+
+button:hover{
+background:#256528;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+🛒 GramSetu Marketplace
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Available Products</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Product</th>
+<th>Quantity</th>
+<th>Price</th>
+<th>Add</th>
+</tr>
+</thead>
+
+<tbody id="productTable">
+</tbody>
+
+</table>
+
+</div>
+
+
+<div class="card">
+
+<h2>My Cart</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Product</th>
+<th>Price</th>
+</tr>
+</thead>
+
+<tbody id="cartTable">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const apiUrl="https://ubtkqscvjb.execute-api.ap-south-1.amazonaws.com/products";
+
+/* farmer id to fetch products */
+const userId="911000000000";
+
+let cart=[];
+
+
+async function loadProducts(){
+
+let response=await fetch(apiUrl+"?farmer_id="+userId);
+
+let data=await response.json();
+
+let table=document.getElementById("productTable");
+
+table.innerHTML="";
+
+data.forEach(p=>{
+
+let row=`
+<tr>
+<td>${p.name}</td>
+<td>${p.quantity}</td>
+<td>₹${p.price}</td>
+<td>
+<button onclick='addToCart(${JSON.stringify(p)})'>
+Add
+</button>
+</td>
+</tr>
+`;
+
+table.innerHTML+=row;
+
+});
+
+}
+
+
+function addToCart(product){
+
+cart.push(product);
+
+renderCart();
+
+}
+
+
+function renderCart(){
+
+let table=document.getElementById("cartTable");
+
+table.innerHTML="";
+
+cart.forEach(item=>{
+
+let row=`
+<tr>
+<td>${item.name}</td>
+<td>₹${item.price}</td>
+</tr>
+`;
+
+table.innerHTML+=row;
+
+});
+
+}
+
+
+/* load products when page opens */
+loadProducts();
+
+</script>
+
+</body>
+</html>

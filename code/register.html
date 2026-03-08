@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GramSetu - Register</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f4f6f8;
+margin:0;
+}
+
+.header{
+background:#2e7d32;
+color:white;
+padding:15px;
+font-size:22px;
+font-weight:bold;
+text-align:center;
+}
+
+.container{
+width:400px;
+margin:40px auto;
+background:white;
+padding:25px;
+border-radius:8px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+text-align:center;
+color:#2e7d32;
+}
+
+label{
+display:block;
+margin-top:12px;
+font-weight:bold;
+}
+
+input, select{
+width:100%;
+padding:8px;
+margin-top:5px;
+border:1px solid #ccc;
+border-radius:4px;
+}
+
+.radio-group{
+margin-top:5px;
+}
+
+.radio-group input{
+width:auto;
+}
+
+button{
+margin-top:20px;
+width:100%;
+padding:10px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:5px;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#256528;
+}
+
+.detect-btn{
+margin-top:5px;
+background:#1976d2;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+🌾 GramSetu
+</div>
+
+<div class="container">
+
+<h2>Register</h2>
+
+<form id="registerForm">
+
+<label>Name</label>
+<input type="text" id="name" required>
+
+<label>Register As</label>
+<div class="radio-group">
+<input type="radio" name="role" value="customer" checked> Customer
+<input type="radio" name="role" value="farmer"> Farmer
+</div>
+
+<label>Mobile Number (will be username)</label>
+<input type="tel" id="mobile" required>
+
+<label>Password</label>
+<input type="password" id="password" required>
+
+<label>Confirm Password</label>
+<input type="password" id="confirmPassword" required>
+
+<label>Address</label>
+<input type="text" id="address" placeholder="Auto detected location">
+
+<button type="button" class="detect-btn" onclick="detectLocation()">
+Auto Detect Address
+</button>
+
+<label>Vehicle Type</label>
+<select id="vehicle">
+<option value="two_wheeler">Two Wheeler</option>
+<option value="four_wheeler">Four Wheeler</option>
+<option value="none">No Vehicle Available</option>
+</select>
+
+<button type="submit">Register</button>
+
+</form>
+
+<p id="msg"></p>
+
+</div>
+
+<script>
+
+let latitude = "";
+let longitude = "";
+
+function detectLocation(){
+
+if(navigator.geolocation){
+
+navigator.geolocation.getCurrentPosition(function(position){
+
+latitude = position.coords.latitude;
+longitude = position.coords.longitude;
+
+fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+.then(res => res.json())
+.then(data => {
+document.getElementById("address").value = data.display_name;
+});
+
+});
+
+}else{
+alert("Geolocation not supported");
+}
+
+}
+
+const region = "ap-south-1"; 
+const clientId = "44v22jc2gsnjdhr77cnpeebk0u";
+const clientSecret = "1rh54i5mk5ea7n89lq6a7m99p4mta5votnu2dia0mhf72itgpln8";
+
+async function generateSecretHash(username){
+
+const encoder = new TextEncoder();
+
+const key = await crypto.subtle.importKey(
+"raw",
+encoder.encode(clientSecret),
+{name:"HMAC", hash:"SHA-256"},
+false,
+["sign"]
+);
+
+const message = encoder.encode(username + clientId);
+
+const signature = await crypto.subtle.sign("HMAC", key, message);
+
+return btoa(String.fromCharCode(...new Uint8Array(signature)));
+
+}
+
+document.getElementById("registerForm").addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+let mobile = document.getElementById("mobile").value;
+let password = document.getElementById("password").value;
+let confirmPassword = document.getElementById("confirmPassword").value;
+
+if(password !== confirmPassword){
+document.getElementById("msg").innerText = "Passwords do not match";
+return;
+}
+
+const secretHash = await generateSecretHash(mobile);
+
+try{
+
+let response = await fetch(`https://cognito-idp.${region}.amazonaws.com/`,{
+method:"POST",
+headers:{
+"Content-Type":"application/x-amz-json-1.1",
+"X-Amz-Target":"AWSCognitoIdentityProviderService.SignUp"
+},
+body:JSON.stringify({
+ClientId: clientId,
+Username: mobile,
+Password: password,
+SecretHash: secretHash,
+UserAttributes: [
+    {
+      Name: "phone_number",
+      Value: "+91"+mobile
+    },
+    {
+      Name: "name",
+      Value: document.getElementById("name").value
+    }
+  ]
+})
+});
+
+let data = await response.json();
+
+if(data.UserSub){
+
+const userData = {
+user_id: "+91"+mobile,
+name: document.getElementById("name").value,
+role: document.querySelector('input[name="role"]:checked').value,
+village: document.getElementById("address").value,
+lat: latitude,
+lon: longitude
+};
+
+await fetch("https://ubtkqscvjb.execute-api.ap-south-1.amazonaws.com/users",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body: JSON.stringify(userData)
+});
+
+document.getElementById("msg").innerText = "User registered successfully!";
+
+}
+
+else{
+document.getElementById("msg").innerText = "Registration failed";
+}
+
+console.log(data);
+
+}catch(err){
+
+document.getElementById("msg").innerText = "Error registering user";
+console.log(err);
+
+}
+
+});
+
+
+// document.getElementById("registerForm").addEventListener("submit",function(e){
+
+// e.preventDefault();
+
+// let name = document.getElementById("name").value;
+// let mobile = document.getElementById("mobile").value;
+// let password = document.getElementById("password").value;
+// let confirmPassword = document.getElementById("confirmPassword").value;
+// let address = document.getElementById("address").value;
+// let vehicle = document.getElementById("vehicle").value;
+// let role = document.querySelector('input[name="role"]:checked').value;
+
+// if(password !== confirmPassword){
+// document.getElementById("msg").innerText = "Passwords do not match!";
+// return;
+// }
+
+// let userData = {
+// name,
+// mobile,
+// password,
+// role,
+// address,
+// vehicle
+// };
+
+// console.log(userData);
+
+// document.getElementById("msg").innerText = "Registration data captured";
+
+
+
+
+// });
+
+</script>
+
+</body>
+</html>
